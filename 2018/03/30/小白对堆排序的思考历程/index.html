@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html>
+    <!-- title -->
+
+
+
+
+
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" >
+    <title>小白对堆排序的思考历程 · yy2012&#39;s Studio</title>
+    <style type="text/css">
+    @font-face {
+        font-family: 'Oswald-Regular';
+        src: url("/font/Oswald-Regular.ttf");
+    }
+
+    body {
+        margin: 0;
+    }
+
+    header,
+    footer,
+    .back-top,
+    .sidebar,
+    .container,
+    .site-intro-meta,
+    .toc-wrapper {
+        display: none;
+    }
+
+    .site-intro {
+        position: relative;
+        z-index: 3;
+        width: 100%;
+        /* height: 50vh; */
+        overflow: hidden;
+        box-shadow: 0 0 3px 0 rgba(0, 0, 0, 0.7);
+    }
+
+    .site-intro-placeholder {
+        position: absolute;
+        z-index: -2;
+        top: 0;
+        left: 0;
+        width: calc(100% + 300px);
+        height: 100%;
+        background: repeating-linear-gradient(-45deg, #444 0, #444 80px, #333 80px, #333 160px);
+        background-position: center center;
+        transform: translate3d(-226px, 0, 0);
+        animation: gradient-move 2.5s ease-out 0s 1;
+    }
+
+    @keyframes gradient-move {
+        0% {
+            transform: translate3d(-226px, 0, 0);
+        }
+        100% {
+            transform: translate3d(0, 0, 0);
+        }
+    }
+
+</style>
+
+    <link rel="preload" href= /css/style.css?v=20180317 as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="stylesheet" type="text/css" href= /css/mobile.css?v=20180317 media="(max-width: 980px)"/>
+    
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        
+    <link rel="icon" href= /assets/favicon.jpg>
+    <script>
+        (function (w) {
+            "use strict";
+            // rel=preload support test
+            if (!w.loadCSS) {
+                w.loadCSS = function () { };
+            }
+            // define on the loadCSS obj
+            var rp = loadCSS.relpreload = {};
+            // rel=preload feature support test
+            // runs once and returns a function for compat purposes
+            rp.support = (function () {
+                var ret;
+                try {
+                    ret = w.document.createElement("link").relList.supports("preload");
+                } catch (e) {
+                    ret = false;
+                }
+                return function () {
+                    return ret;
+                };
+            })();
+
+            // if preload isn't supported, get an asynchronous load by using a non-matching media attribute
+            // then change that media back to its intended value on load
+            rp.bindMediaToggle = function (link) {
+                // remember existing media attr for ultimate state, or default to 'all'
+                var finalMedia = link.media || "all";
+
+                function enableStylesheet() {
+                    link.media = finalMedia;
+                }
+
+                // bind load handlers to enable media
+                if (link.addEventListener) {
+                    link.addEventListener("load", enableStylesheet);
+                } else if (link.attachEvent) {
+                    link.attachEvent("onload", enableStylesheet);
+                }
+
+                // Set rel and non-applicable media type to start an async request
+                // note: timeout allows this to happen async to let rendering continue in IE
+                setTimeout(function () {
+                    link.rel = "stylesheet";
+                    link.media = "only x";
+                });
+                // also enable media after 3 seconds,
+                // which will catch very old browsers (android 2.x, old firefox) that don't support onload on link
+                setTimeout(enableStylesheet, 3000);
+            };
+
+            // loop through link elements in DOM
+            rp.poly = function () {
+                // double check this to prevent external calls from running
+                if (rp.support()) {
+                    return;
+                }
+                var links = w.document.getElementsByTagName("link");
+                for (var i = 0; i < links.length; i++) {
+                    var link = links[i];
+                    // qualify links to those with rel=preload and as=style attrs
+                    if (link.rel === "preload" && link.getAttribute("as") === "style" && !link.getAttribute("data-loadcss")) {
+                        // prevent rerunning on link
+                        link.setAttribute("data-loadcss", true);
+                        // bind listeners to toggle media back
+                        rp.bindMediaToggle(link);
+                    }
+                }
+            };
+
+            // if unsupported, run the polyfill
+            if (!rp.support()) {
+                // run once at least
+                rp.poly();
+
+                // rerun poly on an interval until onload
+                var run = w.setInterval(rp.poly, 500);
+                if (w.addEventListener) {
+                    w.addEventListener("load", function () {
+                        rp.poly();
+                        w.clearInterval(run);
+                    });
+                } else if (w.attachEvent) {
+                    w.attachEvent("onload", function () {
+                        rp.poly();
+                        w.clearInterval(run);
+                    });
+                }
+            }
+            // commonjs
+            if (typeof exports !== "undefined") {
+                exports.loadCSS = loadCSS;
+            }
+            else {
+                w.loadCSS = loadCSS;
+            }
+        }(typeof global !== "undefined" ? global : this));
+    </script>
+    <script src="//cdn.staticfile.org/jquery/3.2.1/jquery.min.js" defer></script>
+    <script src="/scripts/main.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" defer></script>
+    <!-- 百度统计  -->
+    
+    <!-- 谷歌统计  -->
+    
+</head>
+
+    
+        <body class="post-body">
+    
+    
+<header class="header">
+
+    <div class="read-progress"></div>
+    <div class="header-sidebar-menu">&#xe775;</div>
+    <!-- post页的toggle banner  -->
+    
+    <div class="banner">
+            <div class="blog-title">
+                <a href="/" >yy2012&#39;s Studio.</a>
+            </div>
+            <div class="post-title">
+                <a href="#" class="post-name">小白对堆排序的思考历程</a>
+            </div>
+    </div>
+    
+    <a class="home-link" href=/>yy2012's Studio.</a>
+</header>
+    <div class="wrapper">
+        <div class="site-intro" style=
+
+
+
+
+
+
+
+
+height:50vh;
+
+>
+    
+    <!-- 主页  -->
+    
+    
+    <!-- 404页  -->
+            
+    <div class="site-intro-img" style="background-image: url(/intro/post-bg.jpg)"></div>
+    <div class="site-intro-placeholder"></div>
+    <div class="site-intro-meta">
+        <!-- 标题  -->
+        <h1 class="intro-title">
+            <!-- 主页  -->
+            
+            小白对堆排序的思考历程
+            <!-- 404 -->
+            
+        </h1>
+        <!-- 副标题 -->
+        <p class="intro-subtitle">
+            <!-- 主页副标题  -->
+            
+            
+            <!-- 404 -->
+            
+        </p>
+        <!-- 文章页meta -->
+        
+            <!-- 文章页标签  -->
+            
+            <div class="post-intro-meta">
+                <span class="post-intro-calander iconfont-archer">&#xe676;</span>
+                <span class="post-intro-time">2018/03/30</span>
+                
+                <span id="busuanzi_container_page_pv" class="busuanzi-pv">
+                    <span class="iconfont-archer">&#xe602;</span>
+                    <span id="busuanzi_value_page_pv"></span>
+                </span>
+                
+                <span class="shareWrapper">
+                    <span class="iconfont-archer shareIcon">&#xe71d;</span>
+                    <span class="shareText">Share</span>
+                    <ul class="shareList">
+                        <li class="iconfont-archer share-qr" data-type="qr">&#xe75b;
+                            <div class="share-qrcode"></div>
+                        </li>
+                        <li class="iconfont-archer" data-type="weibo">&#xe619;</li>
+                        <li class="iconfont-archer" data-type="qzone">&#xe62e;</li>
+                        <li class="iconfont-archer" data-type="twitter">&#xe634;</li>
+                        <li class="iconfont-archer" data-type="facebook">&#xe67a;</li>
+                    </ul>
+                </span>
+            </div>
+        
+    </div>
+</div>
+        <script>
+  // load webfont-loader async, and add callback function
+  function async(u, c) {
+    var d = document, t = 'script',
+      o = d.createElement(t),
+      s = d.getElementsByTagName(t)[0];
+    o.src = u;
+    if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+    s.parentNode.insertBefore(o, s);
+  }
+  
+  // get user agent
+  var browser = {
+    versions: function () {
+      var u = window.navigator.userAgent;
+      return {
+        userAgent: u,
+        trident: u.indexOf('Trident') > -1, //IE内核
+        presto: u.indexOf('Presto') > -1, //opera内核
+        webKit: u.indexOf('AppleWebKit') > -1, //苹果、谷歌内核
+        gecko: u.indexOf('Gecko') > -1 && u.indexOf('KHTML') == -1, //火狐内核
+        mobile: !!u.match(/AppleWebKit.*Mobile.*/), //是否为移动终端
+        ios: !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/), //ios终端
+        android: u.indexOf('Android') > -1 || u.indexOf('Linux') > -1, //android终端或者uc浏览器
+        iPhone: u.indexOf('iPhone') > -1 || u.indexOf('Mac') > -1, //是否为iPhone或者安卓QQ浏览器
+        iPad: u.indexOf('iPad') > -1, //是否为iPad
+        webApp: u.indexOf('Safari') == -1, //是否为web应用程序，没有头部与底部
+        weixin: u.indexOf('MicroMessenger') == -1, //是否为微信浏览器
+        uc: u.indexOf('UCBrowser') > -1 //是否为android下的UC浏览器
+      };
+    }()
+  }
+  console.log("userAgent:" + browser.versions.userAgent);
+
+  // callback
+  function fontLoaded() {
+    console.log('font loaded');
+    if (document.getElementsByClassName('site-intro-meta')) {
+      document.getElementsByClassName('intro-title')[0].classList.add('intro-fade-in');
+      document.getElementsByClassName('intro-subtitle')[0].classList.add('intro-fade-in');
+      var postIntroTags = document.getElementsByClassName('post-intro-tags')[0],
+        postIntroMeat = document.getElementsByClassName('post-intro-meta')[0];
+      if (postIntroTags) {
+        postIntroTags.classList.add('post-fade-in');
+      }
+      if (postIntroMeat) {
+        postIntroMeat.classList.add('post-fade-in');
+      }
+    }
+  }
+
+  // UC不支持跨域，所以直接显示
+  function asyncCb(){
+    if (browser.versions.uc) {
+      console.log("UCBrowser");
+      fontLoaded();
+    } else {
+      WebFont.load({
+        custom: {
+          families: ['Oswald-Regular']
+        },
+        loading: function () {  //所有字体开始加载
+          // console.log('loading');
+        },
+        active: function () {  //所有字体已渲染
+          fontLoaded();
+        },
+        inactive: function () { //字体预加载失败，无效字体或浏览器不支持加载
+          console.log('inactive: timeout');
+          fontLoaded();
+        },
+        timeout: 5000 // Set the timeout to two seconds
+      });
+    }
+  }
+
+  async("https://cdn.jsdelivr.net/npm/webfontloader@1.6.28/webfontloader.min.js", asyncCb)
+</script>        
+        <img class="loading" src="/assets/loading.svg" style="display: block; margin: 6rem auto 0 auto; width: 6rem; height: 6rem;" />
+        <div class="container container-unloaded">
+            <main class="main post-page">
+    <article class="article-entry">
+        <p>关于堆排序，经过对概念的思考，认为主要分为两大步骤<br>一是进行堆的初始化，也就是建堆，如何将一串list转变为大堆或者小堆，这一步我认为是该算法的核心<br>二是将根节点R(0)与最末尾的R(n)相交换，因为建堆完成后，R(0)是最大值或最小值，所以交换后得到排序好的元素R(0)，以及未排序的R(0)到R(n-1)，然后对其再次初始化堆，不断重复交换，并初始化堆的过程，当剩最后一个元素的时候，完成堆排序</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line">def chushi(array, n, end):</span><br><span class="line">    <span class="comment"># 初始化堆，n为父节点，end为需要初始化堆的末尾坐标</span></span><br><span class="line">    <span class="comment"># 先判断父节点是否有子节点，如果有两个，先从左节点判断是否有子节点</span></span><br><span class="line">    <span class="comment"># 若没有子节点了，则以及找到了堆的最边缘的叶子，开始堆这个节点进行调换，通过函数chushi_father()</span></span><br><span class="line">    <span class="comment"># 传入参数该节点的位置n</span></span><br><span class="line">    <span class="keyword">if</span> 2*n &lt;= end:</span><br><span class="line">        <span class="keyword">if</span> 2*n+1 &lt;= end:</span><br><span class="line">            chushi(array, 2*n, end)</span><br><span class="line">            chushi(array, 2*n+1, end)</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            chushi(array, 2*n, end)</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        chushi_father(array, n, end)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def chushi_father(array, n, end):</span><br><span class="line">    <span class="comment"># 用于调换排序节点n，先判断该节点是否是左侧子节点，若是，则开始判断是否存在兄弟节点，</span></span><br><span class="line">    <span class="comment"># 若存在则先将自己与父节点大小进行判断，若大于父节点则调换位置，然后比较兄弟节点与父节点的大小，</span></span><br><span class="line">    <span class="comment"># 若不存在兄弟节点，则直接比较自身与父节点大小</span></span><br><span class="line">    <span class="comment"># 然后开始对该节点的父节点进行调换判断，此时该节点的父节点为相对子节点，若该父节点没有兄弟节点，说明是根节点，结束迭代</span></span><br><span class="line">    father = n // 2</span><br><span class="line">    <span class="keyword">if</span> n % 2 == 0:</span><br><span class="line">        <span class="keyword">if</span> n + 1 &lt;= end:</span><br><span class="line">            <span class="keyword">if</span> array[n] &gt; array[father]:</span><br><span class="line">                array[n], array[father] = array[father], array[n]</span><br><span class="line">            <span class="keyword">if</span> array[n + 1] &gt; array[father]:</span><br><span class="line">                array[n + 1], array[father] = array[father], array[n + 1]</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            <span class="keyword">if</span> array[n] &gt; array[father]:</span><br><span class="line">                array[n], array[father] = array[father], array[n]</span><br><span class="line">        chushi_father(array, father, end)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def pan(array, end):</span><br><span class="line">    <span class="comment"># 由于初始化过程会造成有些元素变动后无法遍历到，因此需要增加一个判断函数，判断堆是否合法</span></span><br><span class="line">    <span class="comment"># 若不合法，则再次初始化</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(1, end):</span><br><span class="line">        <span class="keyword">if</span> 2*i &lt;= end:</span><br><span class="line">            <span class="keyword">if</span> array[i] &lt; array[2*i]:</span><br><span class="line">                <span class="built_in">return</span> False</span><br><span class="line">        <span class="keyword">if</span> 2*i+1 &lt;= end:</span><br><span class="line">            <span class="keyword">if</span> array[i] &lt; array[2*i]:</span><br><span class="line">                <span class="built_in">return</span> False</span><br><span class="line">            <span class="keyword">if</span> array[i] &lt; array[2*i+1]:</span><br><span class="line">                <span class="built_in">return</span> False</span><br><span class="line">    <span class="built_in">return</span> True</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def duipai(array, end):</span><br><span class="line">    <span class="comment"># 当堆不合法时，进行循环，直到堆合法退出</span></span><br><span class="line">    <span class="keyword">while</span> not pan(array, end):</span><br><span class="line">        chushi(array, 1, end)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">a = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 16, 16, 12, 13, 14, 15, 16]</span><br><span class="line">duipai(a, len(a)-1)</span><br><span class="line"><span class="built_in">print</span>(a)</span><br><span class="line">b = [0, 4, 2, 1, 77, 5, 4, 6, 3, 5, 77, 34, 22, 64, 12, 77, 78]</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> range(1, len(b)):</span><br><span class="line">    duipai(b, len(b)-i)</span><br><span class="line">    b[1], b[len(b)-i] = b[len(b)-i], b[1]</span><br><span class="line"><span class="built_in">print</span>(b)</span><br></pre></td></tr></table></figure>
+<p>经过测试发现，这段代码有两处严重做无用功的问题，一是通过建堆方式去进行沉降节点，二是建堆算法存在多余步骤<br>因此重新思考建堆方式，以及沉降节点的方式，继续上代码</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br></pre></td><td class="code"><pre><span class="line">def pai(array, length):</span><br><span class="line">    <span class="comment"># 可以发现，从list的二分之一处进行比较替换左右子节点，所需的步数更加少</span></span><br><span class="line">    <span class="comment"># 比如先判断节点length//2的地方然后判断length//2-1的节点，经过这样一轮，就建立好了大根堆</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(length//2, 0, -1):</span><br><span class="line">        <span class="keyword">if</span> 2*i+1 &lt;= length:</span><br><span class="line">            <span class="keyword">if</span> array[2*i] &lt; array[2*i+1]:</span><br><span class="line">                <span class="keyword">if</span> array[i] &lt; array[2*i+1]:</span><br><span class="line">                    array[i], array[2*i+1] = array[2*i+1], array[i]</span><br><span class="line">            <span class="keyword">else</span>:</span><br><span class="line">                <span class="keyword">if</span> array[i] &lt; array[2*i]:</span><br><span class="line">                    array[i], array[2*i] = array[2*i], array[i]</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            <span class="keyword">if</span> array[i] &lt; array[2*i]:</span><br><span class="line">                array[i], array[2*i] = array[2*i], array[i]</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def down(array, n, length):</span><br><span class="line">    <span class="comment"># 当排序的时候可以不必去用建堆方式进行修改堆，做了很多无用功，</span></span><br><span class="line">    <span class="comment"># 因此重新写一个迭代沉降的函数进行修改大堆</span></span><br><span class="line">    <span class="comment"># 当将末尾节点与根节点进行调换后，通过这个函数将调换后的根节点沉降到相应位置</span></span><br><span class="line">    <span class="keyword">if</span> 2*n &lt;= length:</span><br><span class="line">        <span class="keyword">if</span> 2*n+1 &lt;= length:</span><br><span class="line">            <span class="keyword">if</span> array[2 * n] &lt; array[2 * n + 1]:</span><br><span class="line">                <span class="keyword">if</span> array[n] &lt; array[2 * n + 1]:</span><br><span class="line">                    array[n], array[2 * n + 1] = array[2 * n + 1], array[n]</span><br><span class="line">                    down(array, 2*n+1, length)</span><br><span class="line">            <span class="keyword">else</span>:</span><br><span class="line">                <span class="keyword">if</span> array[n] &lt; array[2 * n]:</span><br><span class="line">                    array[n], array[2 * n] = array[2 * n], array[n]</span><br><span class="line">                    down(array, 2*n, length)</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            <span class="keyword">if</span> array[n] &lt; array[2 * n]:</span><br><span class="line">                array[n], array[2 * n] = array[2 * n], array[n]</span><br><span class="line">                down(array, 2 * n, length)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def pan(array, end):</span><br><span class="line">    <span class="comment"># 由于初始化过程会造成有些元素变动后无法遍历到，因此需要增加一个判断函数，判断堆是否合法</span></span><br><span class="line">    <span class="comment"># 若不合法，则再次初始化</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(1, end):</span><br><span class="line">        <span class="keyword">if</span> 2*i &lt;= end:</span><br><span class="line">            <span class="keyword">if</span> array[i] &lt; array[2*i]:</span><br><span class="line">                <span class="built_in">return</span> False</span><br><span class="line">        <span class="keyword">if</span> 2*i+1 &lt;= end:</span><br><span class="line">            <span class="keyword">if</span> array[i] &lt; array[2*i]:</span><br><span class="line">                <span class="built_in">return</span> False</span><br><span class="line">            <span class="keyword">if</span> array[i] &lt; array[2*i+1]:</span><br><span class="line">                <span class="built_in">return</span> False</span><br><span class="line">    <span class="built_in">return</span> True</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def run(array, length):</span><br><span class="line">    <span class="keyword">while</span> not pan(array, length):</span><br><span class="line">        pai(array, length)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">a = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]</span><br><span class="line">run(a, len(a)-1)</span><br><span class="line"><span class="built_in">print</span>(a) <span class="comment"># [0, 16, 11, 15, 9, 10, 13, 14, 8, 2, 1, 5, 12, 6, 3, 7, 4]</span></span><br><span class="line">b = [0, 4, 2, 1, 77, 5, 4, 6, 3, 5, 77, 34, 22, 64, 12, 77, 78]</span><br><span class="line">length_ = len(b)-1</span><br><span class="line">run(b, length_)</span><br><span class="line"><span class="keyword">while</span> length_ &gt; 1:</span><br><span class="line">    down(b, 1, length_)</span><br><span class="line">    b[1], b[length_] = b[length_], b[1]</span><br><span class="line">    length_ -= 1</span><br><span class="line"><span class="built_in">print</span>(b) <span class="comment"># [0, 1, 2, 3, 4, 4, 5, 5, 6, 12, 22, 34, 64, 77, 77, 77, 78]</span></span><br></pre></td></tr></table></figure>
+<p>然后写一个快排算法，比较性能<br>先上快排代码</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">def quick_sort(array, l, r):</span><br><span class="line">    <span class="keyword">if</span> l &lt; r:</span><br><span class="line">        q = partition(array, l, r)</span><br><span class="line">        quick_sort(array, l, q - 1)</span><br><span class="line">        quick_sort(array, q + 1, r)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def partition(array, l, r):</span><br><span class="line">    x = array[r]</span><br><span class="line">    i = l - 1</span><br><span class="line">    <span class="keyword">for</span> j <span class="keyword">in</span> range(l, r):</span><br><span class="line">        <span class="keyword">if</span> array[j] &lt;= x:</span><br><span class="line">            i += 1</span><br><span class="line">            array[i], array[j] = array[j], array[i]</span><br><span class="line">    array[i + 1], array[r] = array[r], array[i + 1]</span><br><span class="line">    <span class="built_in">return</span> i + 1</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">list_1 = [4, 1, 3, 55, 1, 5, 21, 5, 1]</span><br><span class="line">quick_sort(list_1, 0, len(list_1)-1)</span><br><span class="line"><span class="built_in">print</span>(list_1) <span class="comment"># [1, 1, 1, 3, 4, 5, 5, 21, 55]</span></span><br></pre></td></tr></table></figure>
+<p>然后将修改好的堆排序与快排一起测试<br>代码如下</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br></pre></td><td class="code"><pre><span class="line">import random</span><br><span class="line">import time</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def pan(array, end):</span><br><span class="line">    <span class="comment"># 由于初始化过程会造成有些元素变动后无法遍历到，因此需要增加一个判断函数，判断堆是否合法</span></span><br><span class="line">    <span class="comment"># 若不合法，则再次初始化</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(1, end):</span><br><span class="line">        <span class="keyword">if</span> 2*i &lt;= end:</span><br><span class="line">            <span class="keyword">if</span> array[i] &lt; array[2*i]:</span><br><span class="line">                <span class="built_in">return</span> False</span><br><span class="line">        <span class="keyword">if</span> 2*i+1 &lt;= end:</span><br><span class="line">            <span class="keyword">if</span> array[i] &lt; array[2*i]:</span><br><span class="line">                <span class="built_in">return</span> False</span><br><span class="line">            <span class="keyword">if</span> array[i] &lt; array[2*i+1]:</span><br><span class="line">                <span class="built_in">return</span> False</span><br><span class="line">    <span class="built_in">return</span> True</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def pai(array, length):</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(length//2, 0, -1):</span><br><span class="line">        <span class="keyword">if</span> 2*i+1 &lt;= length:</span><br><span class="line">            <span class="keyword">if</span> array[2*i] &lt; array[2*i+1]:</span><br><span class="line">                array[2*i], array[2*i+1] = array[2*i+1], array[2*i]</span><br><span class="line">            <span class="keyword">if</span> array[i] &lt; array[2*i]:</span><br><span class="line">                array[i], array[2*i] = array[2*i], array[i]</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            <span class="keyword">if</span> array[i] &lt; array[2*i]:</span><br><span class="line">                array[i], array[2*i] = array[2*i], array[i]</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def down(array, n, length):</span><br><span class="line">    <span class="keyword">if</span> 2*n &lt;= length:</span><br><span class="line">        <span class="keyword">if</span> 2*n+1 &lt;= length:</span><br><span class="line">            <span class="keyword">if</span> array[2 * n] &lt; array[2 * n + 1]:</span><br><span class="line">                <span class="keyword">if</span> array[n] &lt; array[2 * n + 1]:</span><br><span class="line">                    array[n], array[2 * n + 1] = array[2 * n + 1], array[n]</span><br><span class="line">                    down(array, 2*n+1, length)</span><br><span class="line">            <span class="keyword">else</span>:</span><br><span class="line">                <span class="keyword">if</span> array[n] &lt; array[2 * n]:</span><br><span class="line">                    array[n], array[2 * n] = array[2 * n], array[n]</span><br><span class="line">                    down(array, 2*n, length)</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            <span class="keyword">if</span> array[n] &lt; array[2 * n]:</span><br><span class="line">                array[n], array[2 * n] = array[2 * n], array[n]</span><br><span class="line">                down(array, 2 * n, length)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># 堆排序run()</span></span><br><span class="line">def run(array, length):</span><br><span class="line">    <span class="keyword">while</span> not pan(array, length):</span><br><span class="line">        pai(array, length)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># 快排quick_sort()</span></span><br><span class="line">def quick_sort(array, l, r):</span><br><span class="line">    <span class="keyword">if</span> l &lt; r:</span><br><span class="line">        q = partition(array, l, r)</span><br><span class="line">        quick_sort(array, l, q - 1)</span><br><span class="line">        quick_sort(array, q + 1, r)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def partition(array, l, r):</span><br><span class="line">    x = array[r]</span><br><span class="line">    i = l - 1</span><br><span class="line">    <span class="keyword">for</span> j <span class="keyword">in</span> range(l, r):</span><br><span class="line">        <span class="keyword">if</span> array[j] &lt;= x:</span><br><span class="line">            i += 1</span><br><span class="line">            array[i], array[j] = array[j], array[i]</span><br><span class="line">    array[i + 1], array[r] = array[r], array[i + 1]</span><br><span class="line">    <span class="built_in">return</span> i + 1</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># 生成随机数列</span></span><br><span class="line">list_a = [0]</span><br><span class="line"><span class="keyword">for</span> j <span class="keyword">in</span> range(10000):</span><br><span class="line">    list_a.append(int(random.random()*10000))</span><br><span class="line">list_b = list_a[:]</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">time_dui_1 = time.time()</span><br><span class="line">length_ = len(list_a)-1</span><br><span class="line">run(list_a, length_)</span><br><span class="line"><span class="keyword">while</span> length_ &gt; 1:</span><br><span class="line">    down(list_a, 1, length_)</span><br><span class="line">    list_a[1], list_a[length_] = list_a[length_], list_a[1]</span><br><span class="line">    length_ -= 1</span><br><span class="line">time_dui_2 = time.time()</span><br><span class="line"></span><br><span class="line">time_quick_1 = time.time()</span><br><span class="line">quick_sort(list_b, 0, len(list_b)-1)</span><br><span class="line">time_quick_2 = time.time()</span><br><span class="line"></span><br><span class="line">time_dui = time_dui_2-time_dui_1</span><br><span class="line">time_quick = time_quick_2-time_quick_1</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">'堆排消耗时间：'</span>, time_dui)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">'快排消耗时间：'</span>, time_quick)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">'相差倍数'</span>, time_dui/time_quick)</span><br><span class="line"><span class="keyword">if</span> list_a == list_b:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">'list_a和list_b排序后相等'</span>)</span><br></pre></td></tr></table></figure>
+<p>最后结果如下：</p>
+<p>堆排消耗时间： 0.13586163520812988<br>快排消耗时间： 0.033087730407714844<br>相差倍数 4.106103184896959<br>list_a和list_b排序后相等</p>
+<p>——————————————————————————————————分割线————————————————————————————————————————————————</p>
+<p>试了下跑生成100万个随机数字，范围试试0到1万<br>最后结果如下：<br>堆排消耗时间： 30.819704055786133<br>堆排建堆消耗时间： 8.191132307052612<br>快排消耗时间： 18.74965000152588<br>相差倍数 1.6437482328085042<br>list_a和list_b排序后相等</p>
+<p>看样子似乎建堆没有问题，堆排主要时间也花在了沉降上面，按照那啥理论计算堆排建堆是O(logn)，排序是O((n-1)logn)，似乎没毛病，加起来是O(nlogn)<br>而快排的时间花费，最好是O(nlogn)，最差是O(n^2)<br>初步估计，如果我写的算法没太大毛病，最大的可能就是数据量不够大，刚刚数据加到100万，倍数从4倍缩小到了1.6倍 </p>
+
+    </article>
+    <!-- 前后页  -->
+    <ul class="post-paginator">
+        <li class="next">
+            
+        </li>
+        <li class="previous">
+            
+                <div class="prevSlogan">Previous Post</div>
+                <a href= "/2018/03/30/第一篇博客。。。/" title= 第一篇博客。。。 >
+                    <div class="prevTitle">第一篇博客。。。</div>
+                </a>
+            
+        </li>
+    </ul>
+    <!-- 评论插件 -->
+    <!-- 来必力City版安装代码 -->
+
+<!-- City版安装代码已完成 -->
+    
+    
+    <!--PC版-->
+
+    <!--PC版-->
+
+
+    
+    <!-- 评论 -->
+</main>
+            <!-- profile -->
+            
+        </div>
+        <footer class="footer footer-unloaded">
+    <!-- social  -->
+    
+    <div class="social">
+        
+    
+        
+            
+                <a href="mailto:???@qq.com" class="iconfont-archer email" title=email ></a>
+            
+        
+    
+        
+            
+                <a href="//github.com/yy2012" class="iconfont-archer github" target="_blank" title=github></a>
+            
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+
+    </div>
+    
+    <!-- powered by Hexo  -->
+    <div class="copyright">
+        <span id="hexo-power">Powered by <a href="https://hexo.io/" target="_blank">Hexo</a></span><span class="iconfont-archer power">&#xe635;</span><span id="theme-info">theme <a href="https://github.com/fi3ework/hexo-theme-archer" target="_blank">Archer</a></span>
+    </div>
+    <!-- 不蒜子  -->
+    
+    <div class="busuanzi-container">
+        <span id="busuanzi_container_site_pv">PV: <span id="busuanzi_value_site_pv"></span>
+        </span>
+    </div>
+    
+</footer>
+    </div>
+    <!-- toc -->
+    
+    <div class="toc-wrapper" style=
+    
+
+
+
+
+
+
+
+top:50vh;
+
+    >
+        <div class="toc-catalog">
+            <span class="iconfont-archer catalog-icon">&#xe613;</span><span>CATALOG</span>
+        </div>
+        
+    </div>
+    
+    <div class="back-top iconfont-archer">&#xe639;</div>
+    <div class="sidebar sidebar-hide">
+    <ul class="sidebar-tabs sidebar-tabs-active-0">
+        <li class="sidebar-tab-archives"><span class="iconfont-archer">&#xe67d;</span><span class="tab-name">Archive</span></li>
+        <li class="sidebar-tab-tags"><span class="iconfont-archer">&#xe61b;</span><span class="tab-name">Tag</span></li>
+        <li class="sidebar-tab-categories"><span class="iconfont-archer">&#xe666;</span><span class="tab-name">Cate</span></li>
+    </ul>
+    <div class="sidebar-content sidebar-content-show-archive">
+          <div class="sidebar-panel-archives">
+    <!-- 在ejs中将archive按照时间排序 -->
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <div class="total-archive"> Total : 3 </div>
+    
+    <div class="post-archive">
+    
+    
+    
+    
+    <div class="archive-year"> 2018 </div>
+    <ul class="year-list">
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">03/30</span><a class="archive-post-title" href= "/2018/03/30/小白对堆排序的思考历程/" >小白对堆排序的思考历程</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">03/30</span><a class="archive-post-title" href= "/2018/03/30/第一篇博客。。。/" >第一篇博客。。。</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">03/30</span><a class="archive-post-title" href= "/2018/03/30/hello-world/" >Hello World</a>
+        </li>
+    
+    </div>
+  </div>
+        <div class="sidebar-panel-tags">
+    <div class="sidebar-tags-name">
+    
+    </div>
+    <div class="iconfont-archer sidebar-tags-empty">&#xe678;</div>
+    <div class="tag-load-fail" style="display: none; color: #ccc; font-size: 0.6rem;">
+    缺失模块。<br/>
+    1、请确保node版本大于6.2<br/>
+    2、在博客根目录（注意不是archer根目录）执行以下命令：<br/>
+    <span style="color: #f75357; font-size: 1rem; line-height: 2rem;">npm i hexo-generator-json-content --save</span><br/>
+    3、在根目录_config.yml里添加配置：
+    <pre style="color: #787878; font-size: 0.6rem;">
+jsonContent:
+  meta: false
+  pages: false
+  posts:
+    title: true
+    date: true
+    path: true
+    text: false
+    raw: false
+    content: false
+    slug: false
+    updated: false
+    comments: false
+    link: false
+    permalink: false
+    excerpt: false
+    categories: true
+    tags: true</pre>
+    </div> 
+    <div class="sidebar-tags-list"></div>
+</div>
+        <div class="sidebar-panel-categories">
+    <div class="sidebar-categories-name">
+    
+    </div>
+    <div class="iconfont-archer sidebar-categories-empty">&#xe678;</div>
+    <div class="sidebar-categories-list"></div>
+</div>
+    </div>
+</div> 
+    <script>
+    var siteMeta = {
+        root: '/',
+        author: 'John Doe'
+    }
+</script>
+    <!-- busuanzi  -->
+    
+    <script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    
+    <!-- CNZZ  -->
+    
+    </div>
+    <!-- async load share.js -->
+    
+        <script src="/scripts/share.js" async></script>    
+    
+    </body>
+</html>
+
+
