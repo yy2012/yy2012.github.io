@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html>
+    <!-- title -->
+
+
+
+
+
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" >
+    <title>红黑树 · yy2012&#39;s Studio</title>
+    <style type="text/css">
+    @font-face {
+        font-family: 'Oswald-Regular';
+        src: url("/font/Oswald-Regular.ttf");
+    }
+
+    body {
+        margin: 0;
+    }
+
+    header,
+    footer,
+    .back-top,
+    .sidebar,
+    .container,
+    .site-intro-meta,
+    .toc-wrapper {
+        display: none;
+    }
+
+    .site-intro {
+        position: relative;
+        z-index: 3;
+        width: 100%;
+        /* height: 50vh; */
+        overflow: hidden;
+        box-shadow: 0 0 3px 0 rgba(0, 0, 0, 0.7);
+    }
+
+    .site-intro-placeholder {
+        position: absolute;
+        z-index: -2;
+        top: 0;
+        left: 0;
+        width: calc(100% + 300px);
+        height: 100%;
+        background: repeating-linear-gradient(-45deg, #444 0, #444 80px, #333 80px, #333 160px);
+        background-position: center center;
+        transform: translate3d(-226px, 0, 0);
+        animation: gradient-move 2.5s ease-out 0s 1;
+    }
+
+    @keyframes gradient-move {
+        0% {
+            transform: translate3d(-226px, 0, 0);
+        }
+        100% {
+            transform: translate3d(0, 0, 0);
+        }
+    }
+
+</style>
+
+    <link rel="preload" href= /css/style.css?v=20180317 as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="stylesheet" type="text/css" href= /css/mobile.css?v=20180317 media="(max-width: 980px)"/>
+    
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        
+    <link rel="icon" href= /assets/favicon.jpg>
+    <script>
+        (function (w) {
+            "use strict";
+            // rel=preload support test
+            if (!w.loadCSS) {
+                w.loadCSS = function () { };
+            }
+            // define on the loadCSS obj
+            var rp = loadCSS.relpreload = {};
+            // rel=preload feature support test
+            // runs once and returns a function for compat purposes
+            rp.support = (function () {
+                var ret;
+                try {
+                    ret = w.document.createElement("link").relList.supports("preload");
+                } catch (e) {
+                    ret = false;
+                }
+                return function () {
+                    return ret;
+                };
+            })();
+
+            // if preload isn't supported, get an asynchronous load by using a non-matching media attribute
+            // then change that media back to its intended value on load
+            rp.bindMediaToggle = function (link) {
+                // remember existing media attr for ultimate state, or default to 'all'
+                var finalMedia = link.media || "all";
+
+                function enableStylesheet() {
+                    link.media = finalMedia;
+                }
+
+                // bind load handlers to enable media
+                if (link.addEventListener) {
+                    link.addEventListener("load", enableStylesheet);
+                } else if (link.attachEvent) {
+                    link.attachEvent("onload", enableStylesheet);
+                }
+
+                // Set rel and non-applicable media type to start an async request
+                // note: timeout allows this to happen async to let rendering continue in IE
+                setTimeout(function () {
+                    link.rel = "stylesheet";
+                    link.media = "only x";
+                });
+                // also enable media after 3 seconds,
+                // which will catch very old browsers (android 2.x, old firefox) that don't support onload on link
+                setTimeout(enableStylesheet, 3000);
+            };
+
+            // loop through link elements in DOM
+            rp.poly = function () {
+                // double check this to prevent external calls from running
+                if (rp.support()) {
+                    return;
+                }
+                var links = w.document.getElementsByTagName("link");
+                for (var i = 0; i < links.length; i++) {
+                    var link = links[i];
+                    // qualify links to those with rel=preload and as=style attrs
+                    if (link.rel === "preload" && link.getAttribute("as") === "style" && !link.getAttribute("data-loadcss")) {
+                        // prevent rerunning on link
+                        link.setAttribute("data-loadcss", true);
+                        // bind listeners to toggle media back
+                        rp.bindMediaToggle(link);
+                    }
+                }
+            };
+
+            // if unsupported, run the polyfill
+            if (!rp.support()) {
+                // run once at least
+                rp.poly();
+
+                // rerun poly on an interval until onload
+                var run = w.setInterval(rp.poly, 500);
+                if (w.addEventListener) {
+                    w.addEventListener("load", function () {
+                        rp.poly();
+                        w.clearInterval(run);
+                    });
+                } else if (w.attachEvent) {
+                    w.attachEvent("onload", function () {
+                        rp.poly();
+                        w.clearInterval(run);
+                    });
+                }
+            }
+            // commonjs
+            if (typeof exports !== "undefined") {
+                exports.loadCSS = loadCSS;
+            }
+            else {
+                w.loadCSS = loadCSS;
+            }
+        }(typeof global !== "undefined" ? global : this));
+    </script>
+    <script src="//cdn.staticfile.org/jquery/3.2.1/jquery.min.js" defer></script>
+    <script src="/scripts/main.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" defer></script>
+    <!-- 百度统计  -->
+    
+    <!-- 谷歌统计  -->
+    
+</head>
+
+    
+        <body class="post-body">
+    
+    
+<header class="header">
+
+    <div class="read-progress"></div>
+    <div class="header-sidebar-menu">&#xe775;</div>
+    <!-- post页的toggle banner  -->
+    
+    <div class="banner">
+            <div class="blog-title">
+                <a href="/" >yy2012&#39;s Studio.</a>
+            </div>
+            <div class="post-title">
+                <a href="#" class="post-name">红黑树</a>
+            </div>
+    </div>
+    
+    <a class="home-link" href=/>yy2012's Studio.</a>
+</header>
+    <div class="wrapper">
+        <div class="site-intro" style=
+
+
+
+
+
+
+
+
+height:50vh;
+
+>
+    
+    <!-- 主页  -->
+    
+    
+    <!-- 404页  -->
+            
+    <div class="site-intro-img" style="background-image: url(/intro/post-bg.jpg)"></div>
+    <div class="site-intro-placeholder"></div>
+    <div class="site-intro-meta">
+        <!-- 标题  -->
+        <h1 class="intro-title">
+            <!-- 主页  -->
+            
+            红黑树
+            <!-- 404 -->
+            
+        </h1>
+        <!-- 副标题 -->
+        <p class="intro-subtitle">
+            <!-- 主页副标题  -->
+            
+            
+            <!-- 404 -->
+            
+        </p>
+        <!-- 文章页meta -->
+        
+            <!-- 文章页标签  -->
+            
+            <div class="post-intro-meta">
+                <span class="post-intro-calander iconfont-archer">&#xe676;</span>
+                <span class="post-intro-time">2018/04/02</span>
+                
+                <span id="busuanzi_container_page_pv" class="busuanzi-pv">
+                    <span class="iconfont-archer">&#xe602;</span>
+                    <span id="busuanzi_value_page_pv"></span>
+                </span>
+                
+                <span class="shareWrapper">
+                    <span class="iconfont-archer shareIcon">&#xe71d;</span>
+                    <span class="shareText">Share</span>
+                    <ul class="shareList">
+                        <li class="iconfont-archer share-qr" data-type="qr">&#xe75b;
+                            <div class="share-qrcode"></div>
+                        </li>
+                        <li class="iconfont-archer" data-type="weibo">&#xe619;</li>
+                        <li class="iconfont-archer" data-type="qzone">&#xe62e;</li>
+                        <li class="iconfont-archer" data-type="twitter">&#xe634;</li>
+                        <li class="iconfont-archer" data-type="facebook">&#xe67a;</li>
+                    </ul>
+                </span>
+            </div>
+        
+    </div>
+</div>
+        <script>
+  // load webfont-loader async, and add callback function
+  function async(u, c) {
+    var d = document, t = 'script',
+      o = d.createElement(t),
+      s = d.getElementsByTagName(t)[0];
+    o.src = u;
+    if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+    s.parentNode.insertBefore(o, s);
+  }
+  
+  // get user agent
+  var browser = {
+    versions: function () {
+      var u = window.navigator.userAgent;
+      return {
+        userAgent: u,
+        trident: u.indexOf('Trident') > -1, //IE内核
+        presto: u.indexOf('Presto') > -1, //opera内核
+        webKit: u.indexOf('AppleWebKit') > -1, //苹果、谷歌内核
+        gecko: u.indexOf('Gecko') > -1 && u.indexOf('KHTML') == -1, //火狐内核
+        mobile: !!u.match(/AppleWebKit.*Mobile.*/), //是否为移动终端
+        ios: !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/), //ios终端
+        android: u.indexOf('Android') > -1 || u.indexOf('Linux') > -1, //android终端或者uc浏览器
+        iPhone: u.indexOf('iPhone') > -1 || u.indexOf('Mac') > -1, //是否为iPhone或者安卓QQ浏览器
+        iPad: u.indexOf('iPad') > -1, //是否为iPad
+        webApp: u.indexOf('Safari') == -1, //是否为web应用程序，没有头部与底部
+        weixin: u.indexOf('MicroMessenger') == -1, //是否为微信浏览器
+        uc: u.indexOf('UCBrowser') > -1 //是否为android下的UC浏览器
+      };
+    }()
+  }
+  console.log("userAgent:" + browser.versions.userAgent);
+
+  // callback
+  function fontLoaded() {
+    console.log('font loaded');
+    if (document.getElementsByClassName('site-intro-meta')) {
+      document.getElementsByClassName('intro-title')[0].classList.add('intro-fade-in');
+      document.getElementsByClassName('intro-subtitle')[0].classList.add('intro-fade-in');
+      var postIntroTags = document.getElementsByClassName('post-intro-tags')[0],
+        postIntroMeat = document.getElementsByClassName('post-intro-meta')[0];
+      if (postIntroTags) {
+        postIntroTags.classList.add('post-fade-in');
+      }
+      if (postIntroMeat) {
+        postIntroMeat.classList.add('post-fade-in');
+      }
+    }
+  }
+
+  // UC不支持跨域，所以直接显示
+  function asyncCb(){
+    if (browser.versions.uc) {
+      console.log("UCBrowser");
+      fontLoaded();
+    } else {
+      WebFont.load({
+        custom: {
+          families: ['Oswald-Regular']
+        },
+        loading: function () {  //所有字体开始加载
+          // console.log('loading');
+        },
+        active: function () {  //所有字体已渲染
+          fontLoaded();
+        },
+        inactive: function () { //字体预加载失败，无效字体或浏览器不支持加载
+          console.log('inactive: timeout');
+          fontLoaded();
+        },
+        timeout: 5000 // Set the timeout to two seconds
+      });
+    }
+  }
+
+  async("https://cdn.jsdelivr.net/npm/webfontloader@1.6.28/webfontloader.min.js", asyncCb)
+</script>        
+        <img class="loading" src="/assets/loading.svg" style="display: block; margin: 6rem auto 0 auto; width: 6rem; height: 6rem;" />
+        <div class="container container-unloaded">
+            <main class="main post-page">
+    <article class="article-entry">
+        <h1 id="定义与特性"><a href="#定义与特性" class="headerlink" title="定义与特性"></a>定义与特性</h1><p>红黑树，根据小白我的理解，这是一种平衡二叉树，其查找，插入，删除的操作都可以在log(n)时间内完成</p>
+<p>根据定义可以发现，红黑树具有以下五种特性：<br>一、节点只有黑色或者红色<br>二、红黑树的根节点是黑色的<br>三、所有空节点是黑色的<br>四、红色节点的子节点不可能是黑色<br>五、从根节点到任何空节点的路径上，黑色节点的个数是一致的</p>
+<p>这五个特性决定了红黑树优异的性能，即log(n)</p>
+<h1 id="思考过程"><a href="#思考过程" class="headerlink" title="思考过程"></a>思考过程</h1><h2 id="构建搜索二叉树"><a href="#构建搜索二叉树" class="headerlink" title="构建搜索二叉树"></a>构建搜索二叉树</h2><p>具体如何生成红黑树<br>开始一步一步从最开始思考</p>
+<p>先生成搜索二叉树，也就是小于等于节点的数据放左边子节点，大于节点的数据放右边子节点<br>所以节点需要的属性有自己的数据，父节点是谁，左右子节点是谁，自己是父节点的左边还是右边<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">class Node:</span><br><span class="line">    def __init__(self, item):</span><br><span class="line">        self.item = item</span><br><span class="line">        self.father = None</span><br><span class="line">        self.left = None</span><br><span class="line">        self.right = None</span><br><span class="line">        self.flag = None</span><br></pre></td></tr></table></figure></p>
+<p>然后定义树class<br>需要写一个插入数据的函数<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">class Tree:</span><br><span class="line">    def __init__(self):</span><br><span class="line">        self.root = None</span><br><span class="line"></span><br><span class="line">    def location(self, temp, node):</span><br><span class="line">        <span class="keyword">if</span> temp.item is None:</span><br><span class="line">            temp.item = node.item</span><br><span class="line">            temp.left = Node(None)</span><br><span class="line">            temp.left.flag = <span class="string">'left'</span></span><br><span class="line">            temp.left.father = temp</span><br><span class="line">            temp.right = Node(None)</span><br><span class="line">            temp.right.flag = <span class="string">'right'</span></span><br><span class="line">            temp.right.father = temp</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            <span class="keyword">if</span> temp.item &gt;= node.item:</span><br><span class="line">                self.location(temp.left, node)</span><br><span class="line">            <span class="keyword">else</span>:</span><br><span class="line">                self.location(temp.right, node)</span><br><span class="line"></span><br><span class="line">    def add(self, item):</span><br><span class="line">        node = Node(item)</span><br><span class="line">        <span class="keyword">if</span> self.root is None: </span><br><span class="line">            self.root = node</span><br><span class="line">            self.root.left = Node(None)</span><br><span class="line">            self.root.left.flag = <span class="string">'left'</span></span><br><span class="line">            self.root.left.father = self.root</span><br><span class="line">            self.root.right = Node(None)</span><br><span class="line">            self.root.right.flag = <span class="string">'right'</span></span><br><span class="line">            self.root.right.father = self.root</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            <span class="keyword">if</span> self.root.item &gt;= node.item:</span><br><span class="line">                self.location(self.root.left, node)</span><br><span class="line">            <span class="keyword">else</span>:</span><br><span class="line">                self.location(self.root.right, node)</span><br></pre></td></tr></table></figure></p>
+<p>首先，根节点为None，插入数据若根节点为None，则self.root = node，定义根节点<br>随后分别设置左右子节点，值为None，以及左右子节点的father和flag属性<br>再次插入数据的时候，就需要开始判断数据大小比较<br>因此重新写一个迭代函数location，传入当前节点，以及构造好并且需要插入的节点<br>如果当前节点值为None，说明可以插入，随后像之前一样构造好左右空子节点<br>如果当前节点不为空，则比较大小，如果需插入节点的值小于等于当前节点，则当前节点设为左侧子节点 再次迭代<br>再写一个层次遍历函数来查看我们刚刚写好代码的效果<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">def cengci(self):</span><br><span class="line">        list_a = []</span><br><span class="line">        list_b = []</span><br><span class="line">        <span class="keyword">if</span> self.root.item is None:</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">'二叉树为空！'</span>)</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            list_a.append(self.root)</span><br><span class="line">            <span class="keyword">while</span> list_a:</span><br><span class="line">                a = list_a.pop(0)</span><br><span class="line">                list_b.append(a.item)</span><br><span class="line">                <span class="keyword">if</span> a.item is None:</span><br><span class="line">                    pass</span><br><span class="line">                <span class="keyword">else</span>:</span><br><span class="line">                    list_a.append(a.left)</span><br><span class="line">                    list_a.append(a.right)</span><br><span class="line">        <span class="built_in">return</span> list_b</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">import random</span><br><span class="line">myTree = Tree()</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> range(5):</span><br><span class="line">    myTree.add(int(random.random()*10))</span><br><span class="line"><span class="built_in">print</span>(myTree.cengci()) <span class="comment"># [4, 2, 6, 1, 3, None, None, None, None, None, None]</span></span><br></pre></td></tr></table></figure>
+<p>可以发现成功写好搜索二叉树的构造</p>
+<h2 id="修改成红黑树"><a href="#修改成红黑树" class="headerlink" title="修改成红黑树"></a>修改成红黑树</h2><p>添加颜色属性</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">class Node:</span><br><span class="line">    def __init__(self, item):</span><br><span class="line">        self.item = item</span><br><span class="line">        self.father = None</span><br><span class="line">        self.left = None</span><br><span class="line">        self.right = None</span><br><span class="line">        self.color = <span class="string">'black'</span></span><br><span class="line">        self.flag = None</span><br></pre></td></tr></table></figure>
+<p>初始节点设为黑色，方便初始化空节点颜色</p>
+<p>如何构造红黑树呢</p>
+<p>根据查阅资料，我们可以发现<br>我们每次插入的节点是红色，然后开始判断这个红色节点会不会破坏红黑树的特性，然后据此进行调整，左旋，右旋，换色<br>1、当插入的节点的父节点是黑色<br>        此时不影响节点数目，所以可以直接插入</p>
+<p>2、当插入的节点的父节点是红色<br>        2.1、节点的父节点是左节点<br>                2.1.1 节点父节点的兄弟节点是黑色<br>                        2.1.1.1 节点自身是左节点<br>                                如果节点的祖父节点是根节点，那么将根节点设置为节点的父节点，根节点为黑色<br>                                将节点的祖父节点进行右旋，节点的父节点改成黑色，节点自己的兄弟节点改成红色<br>                        2.1.1.2 节点自身是右节点<br>                                （如果节点的祖父节点是根节点，那么需要将根节点设置为节点自己，并将根节点颜色改为黑色）<br>                                将节点的当前父节点进行左旋，然后将节点的当前父节点进行右旋，将节点自身颜色改成黑色，节点的右侧子节点改<br>                                成红色<br>                2.1.2 节点父节点的兄弟节点是红色<br>                        2.1.2.1 节点的祖父节点是根节点<br>                                节点的父节点改成黑色，节点父节点的兄弟节点改成黑色<br>                        2.1.2.1 节点的祖父节点不是根节点<br>                                节点的父节点改成黑色，节点父节点的兄弟节点改成黑色，节点的祖父节点改成红色<br>        2.2、节点的父节点是右节点<br>                此时与节点父节点是左节点的结论镜像对称</p>
+<p>先设计左旋，右旋函数<br>上代码</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line">def turn_left(self, temp):</span><br><span class="line">    grandpa = temp.father</span><br><span class="line">    <span class="comment"># 改父亲指针</span></span><br><span class="line">    a = temp.father</span><br><span class="line">    temp.father = temp.right</span><br><span class="line">    temp.right.father = a</span><br><span class="line">    temp.right.left.father = temp</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 改孩子指针</span></span><br><span class="line">    b = temp.right.left</span><br><span class="line">    temp.right.left = temp</span><br><span class="line">    temp.right = b</span><br><span class="line">    <span class="keyword">if</span> temp.flag == <span class="string">'left'</span>:</span><br><span class="line">        grandpa.left = temp.father</span><br><span class="line">    <span class="keyword">elif</span> temp.flag == <span class="string">'right'</span>:</span><br><span class="line">        grandpa.right = temp.father</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 改左右flag</span></span><br><span class="line">    <span class="keyword">if</span> temp.flag == <span class="string">'left'</span>:</span><br><span class="line">        temp.father.flag = <span class="string">'left'</span></span><br><span class="line">    <span class="keyword">elif</span> temp.flag == <span class="string">'right'</span>:</span><br><span class="line">        temp.father.flag = <span class="string">'right'</span></span><br><span class="line">    temp.flag = <span class="string">'left'</span></span><br><span class="line">    temp.right.flag = <span class="string">'right'</span></span><br><span class="line"></span><br><span class="line">def turn_right(self, temp):</span><br><span class="line">    grandpa = temp.father</span><br><span class="line">    <span class="comment"># 改父亲指针</span></span><br><span class="line">    a = temp.father</span><br><span class="line">    temp.father = temp.left</span><br><span class="line">    temp.left.father = a</span><br><span class="line">    temp.left.right.father = temp</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 改孩子指针</span></span><br><span class="line">    b = temp.left.right</span><br><span class="line">    temp.left.right = temp</span><br><span class="line">    temp.left = b</span><br><span class="line">    <span class="keyword">if</span> temp.flag == <span class="string">'left'</span>:</span><br><span class="line">        grandpa.left = temp.father</span><br><span class="line">    <span class="keyword">elif</span> temp.flag == <span class="string">'right'</span>:</span><br><span class="line">        grandpa.right = temp.father</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 改左右flag</span></span><br><span class="line">    <span class="keyword">if</span> temp.flag == <span class="string">'left'</span>:</span><br><span class="line">        temp.father.flag = <span class="string">'left'</span></span><br><span class="line">    <span class="keyword">elif</span> temp.flag == <span class="string">'right'</span>:</span><br><span class="line">        temp.father.flag = <span class="string">'right'</span></span><br><span class="line">    temp.flag = <span class="string">'right'</span></span><br><span class="line">    temp.left.flag = <span class="string">'left'</span></span><br></pre></td></tr></table></figure>
+<p>在通过左旋或者右旋操作的时候，需要注意改变节点相应的父节点属性，左右子节点属性，自身flag属性</p>
+<p>然后结合之前的算法，写出完整代码</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br></pre></td><td class="code"><pre><span class="line">class Node:</span><br><span class="line">    def __init__(self, item):</span><br><span class="line">        self.item = item</span><br><span class="line">        self.father = None</span><br><span class="line">        self.left = None</span><br><span class="line">        self.right = None</span><br><span class="line">        self.color = <span class="string">'black'</span></span><br><span class="line">        self.flag = None</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">class Tree:</span><br><span class="line">    def __init__(self):</span><br><span class="line">        self.root = None</span><br><span class="line"></span><br><span class="line">    def turn_left(self, temp):</span><br><span class="line">        grandpa = temp.father</span><br><span class="line">        <span class="comment"># 改父亲指针</span></span><br><span class="line">        a = temp.father</span><br><span class="line">        temp.father = temp.right</span><br><span class="line">        temp.right.father = a</span><br><span class="line">        temp.right.left.father = temp</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 改孩子指针</span></span><br><span class="line">        b = temp.right.left</span><br><span class="line">        temp.right.left = temp</span><br><span class="line">        temp.right = b</span><br><span class="line">        <span class="keyword">if</span> temp.flag == <span class="string">'left'</span>:</span><br><span class="line">            grandpa.left = temp.father</span><br><span class="line">        <span class="keyword">elif</span> temp.flag == <span class="string">'right'</span>:</span><br><span class="line">            grandpa.right = temp.father</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 改左右flag</span></span><br><span class="line">        <span class="keyword">if</span> temp.flag == <span class="string">'left'</span>:</span><br><span class="line">            temp.father.flag = <span class="string">'left'</span></span><br><span class="line">        <span class="keyword">elif</span> temp.flag == <span class="string">'right'</span>:</span><br><span class="line">            temp.father.flag = <span class="string">'right'</span></span><br><span class="line">        temp.flag = <span class="string">'left'</span></span><br><span class="line">        temp.right.flag = <span class="string">'right'</span></span><br><span class="line"></span><br><span class="line">    def turn_right(self, temp):</span><br><span class="line">        grandpa = temp.father</span><br><span class="line">        <span class="comment"># 改父亲指针</span></span><br><span class="line">        a = temp.father</span><br><span class="line">        temp.father = temp.left</span><br><span class="line">        temp.left.father = a</span><br><span class="line">        temp.left.right.father = temp</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 改孩子指针</span></span><br><span class="line">        b = temp.left.right</span><br><span class="line">        temp.left.right = temp</span><br><span class="line">        temp.left = b</span><br><span class="line">        <span class="keyword">if</span> temp.flag == <span class="string">'left'</span>:</span><br><span class="line">            grandpa.left = temp.father</span><br><span class="line">        <span class="keyword">elif</span> temp.flag == <span class="string">'right'</span>:</span><br><span class="line">            grandpa.right = temp.father</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 改左右flag</span></span><br><span class="line">        <span class="keyword">if</span> temp.flag == <span class="string">'left'</span>:</span><br><span class="line">            temp.father.flag = <span class="string">'left'</span></span><br><span class="line">        <span class="keyword">elif</span> temp.flag == <span class="string">'right'</span>:</span><br><span class="line">            temp.father.flag = <span class="string">'right'</span></span><br><span class="line">        temp.flag = <span class="string">'right'</span></span><br><span class="line">        temp.left.flag = <span class="string">'left'</span></span><br><span class="line"></span><br><span class="line">    def location(self, temp, node):</span><br><span class="line">        <span class="keyword">if</span> temp.item is None:</span><br><span class="line">            temp.item = node.item</span><br><span class="line">            temp.color = node.color</span><br><span class="line">            temp.left = Node(None)</span><br><span class="line">            temp.left.flag = <span class="string">'left'</span></span><br><span class="line">            temp.left.color = <span class="string">'black'</span></span><br><span class="line">            temp.left.father = temp</span><br><span class="line">            temp.right = Node(None)</span><br><span class="line">            temp.right.flag = <span class="string">'right'</span></span><br><span class="line">            temp.right.color = <span class="string">'black'</span></span><br><span class="line">            temp.right.father = temp</span><br><span class="line">            <span class="keyword">if</span> temp.father.color == <span class="string">'black'</span>:</span><br><span class="line">                pass</span><br><span class="line">            <span class="keyword">else</span>:</span><br><span class="line">                <span class="keyword">if</span> temp.father.flag == <span class="string">'left'</span>:</span><br><span class="line">                    <span class="keyword">if</span> temp.father.father.right.color == <span class="string">'black'</span>:</span><br><span class="line">                        <span class="keyword">if</span> temp.flag == <span class="string">'left'</span>:</span><br><span class="line">                            <span class="keyword">if</span> temp.father.father.father is None:</span><br><span class="line">                                self.root = temp.father</span><br><span class="line">                                self.root.color = <span class="string">'black'</span></span><br><span class="line">                            self.turn_right(temp.father.father)</span><br><span class="line">                            temp.father.color = <span class="string">'black'</span></span><br><span class="line">                            temp.father.right.color = <span class="string">'red'</span></span><br><span class="line">                        <span class="keyword">else</span>:</span><br><span class="line">                            <span class="keyword">if</span> temp.father.father.father is None:</span><br><span class="line">                                self.root = temp</span><br><span class="line">                                self.root.color = <span class="string">'black'</span></span><br><span class="line">                            self.turn_left(temp.father)</span><br><span class="line">                            self.turn_right(temp.father)</span><br><span class="line">                            temp.color = <span class="string">'black'</span></span><br><span class="line">                            temp.right.color = <span class="string">'red'</span></span><br><span class="line">                    <span class="keyword">else</span>:</span><br><span class="line">                        <span class="keyword">if</span> temp.father.father.father is None:</span><br><span class="line">                            temp.father.color = <span class="string">'black'</span></span><br><span class="line">                            temp.father.father.right.color = <span class="string">'black'</span></span><br><span class="line">                        <span class="keyword">else</span>:</span><br><span class="line">                            temp.father.color = <span class="string">'black'</span></span><br><span class="line">                            temp.father.father.right.color = <span class="string">'black'</span></span><br><span class="line">                            temp.father.father.color = <span class="string">'red'</span></span><br><span class="line">                <span class="keyword">else</span>:</span><br><span class="line">                    <span class="keyword">if</span> temp.father.father.left.color == <span class="string">'black'</span>:</span><br><span class="line">                        <span class="keyword">if</span> temp.flag == <span class="string">'right'</span>:</span><br><span class="line">                            <span class="keyword">if</span> temp.father.father.father is None:</span><br><span class="line">                                self.root = temp.father</span><br><span class="line">                                self.root.color = <span class="string">'black'</span></span><br><span class="line">                            self.turn_left(temp.father.father)</span><br><span class="line">                            temp.father.color = <span class="string">'black'</span></span><br><span class="line">                            temp.father.left.color = <span class="string">'red'</span></span><br><span class="line">                        <span class="keyword">else</span>:</span><br><span class="line">                            <span class="keyword">if</span> temp.father.father.father is None:</span><br><span class="line">                                self.root = temp</span><br><span class="line">                                self.root.color = <span class="string">'black'</span></span><br><span class="line">                            self.turn_right(temp.father)</span><br><span class="line">                            self.turn_left(temp.father)</span><br><span class="line">                            temp.color = <span class="string">'black'</span></span><br><span class="line">                            temp.left.color = <span class="string">'red'</span></span><br><span class="line">                    <span class="keyword">else</span>:</span><br><span class="line">                        <span class="keyword">if</span> temp.father.father.father is None:</span><br><span class="line">                            temp.father.color = <span class="string">'black'</span></span><br><span class="line">                            temp.father.father.left.color = <span class="string">'black'</span></span><br><span class="line">                        <span class="keyword">else</span>:</span><br><span class="line">                            temp.father.color = <span class="string">'black'</span></span><br><span class="line">                            temp.father.father.left.color = <span class="string">'black'</span></span><br><span class="line">                            temp.father.father.color = <span class="string">'red'</span></span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            <span class="keyword">if</span> temp.item &gt;= node.item:</span><br><span class="line">                self.location(temp.left, node)</span><br><span class="line">            <span class="keyword">else</span>:</span><br><span class="line">                self.location(temp.right, node)</span><br><span class="line"></span><br><span class="line">    def add(self, item):</span><br><span class="line">        node = Node(item)</span><br><span class="line">        <span class="keyword">if</span> self.root is None:</span><br><span class="line">            self.root = node</span><br><span class="line">            self.root.left = Node(None)</span><br><span class="line">            self.root.left.flag = <span class="string">'left'</span></span><br><span class="line">            self.root.left.father = self.root</span><br><span class="line">            self.root.right = Node(None)</span><br><span class="line">            self.root.right.flag = <span class="string">'right'</span></span><br><span class="line">            self.root.right.father = self.root</span><br><span class="line">            self.root.color = <span class="string">'black'</span></span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            node.color = <span class="string">'red'</span></span><br><span class="line">            <span class="keyword">if</span> self.root.item &gt;= node.item:</span><br><span class="line">                self.location(self.root.left, node)</span><br><span class="line">            <span class="keyword">else</span>:</span><br><span class="line">                self.location(self.root.right, node)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 层次遍历</span></span><br><span class="line">    def cengci(self):</span><br><span class="line">        list_a = []</span><br><span class="line">        list_b = []</span><br><span class="line">        list_c = []</span><br><span class="line">        <span class="keyword">if</span> self.root.item is None:</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">'二叉树为空！'</span>)</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            list_a.append(self.root)</span><br><span class="line">            <span class="keyword">while</span> list_a:</span><br><span class="line">                a = list_a.pop(0)</span><br><span class="line">                list_b.append(a.item)</span><br><span class="line">                list_c.append(a.color)</span><br><span class="line">                <span class="keyword">if</span> a.item is None:</span><br><span class="line">                    pass</span><br><span class="line">                <span class="keyword">else</span>:</span><br><span class="line">                    list_a.append(a.left)</span><br><span class="line">                    list_a.append(a.right)</span><br><span class="line">        <span class="built_in">print</span>(list_c)</span><br><span class="line">        <span class="built_in">return</span> list_b</span><br></pre></td></tr></table></figure>
+<p>然后开始测试结果<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">import random</span><br><span class="line">myTree = Tree()</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> range(10):</span><br><span class="line">    myTree.add(int(random.random()*10))</span><br><span class="line"><span class="built_in">print</span>(myTree.cengci())</span><br></pre></td></tr></table></figure></p>
+<p>最后结果是<br>[‘black’, ‘red’, ‘black’, ‘red’, ‘black’, ‘red’, ‘red’, ‘black’, ‘black’, ‘black’, ‘black’, ‘black’, ‘black’, ‘black’, ‘black’, ‘black’, ‘black’, ‘red’, ‘black’, ‘black’, ‘black’]<br>[6, 4, 8, 1, 6, 7, 8, 0, 2, None, None, None, None, None, None, None, None, 2, None, None, None]<br>发现符合红黑树特性，因此到此红黑树的插入构建操作完成</p>
+<p>下一步开始思考更为复杂的删除操作。。。。。。<br>未完待续。。。。。。</p>
+
+    </article>
+    <!-- 前后页  -->
+    <ul class="post-paginator">
+        <li class="next">
+            
+        </li>
+        <li class="previous">
+            
+                <div class="prevSlogan">Previous Post</div>
+                <a href= "/2018/03/30/小白对堆排序的思考历程/" title= 小白对堆排序的思考历程 >
+                    <div class="prevTitle">小白对堆排序的思考历程</div>
+                </a>
+            
+        </li>
+    </ul>
+    <!-- 评论插件 -->
+    <!-- 来必力City版安装代码 -->
+
+<!-- City版安装代码已完成 -->
+    
+    
+    <!--PC版-->
+
+    <!--PC版-->
+
+
+    
+    <!-- 评论 -->
+</main>
+            <!-- profile -->
+            
+        </div>
+        <footer class="footer footer-unloaded">
+    <!-- social  -->
+    
+    <div class="social">
+        
+    
+        
+            
+                <a href="mailto:???@qq.com" class="iconfont-archer email" title=email ></a>
+            
+        
+    
+        
+            
+                <a href="//github.com/yy2012" class="iconfont-archer github" target="_blank" title=github></a>
+            
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+
+    </div>
+    
+    <!-- powered by Hexo  -->
+    <div class="copyright">
+        <span id="hexo-power">Powered by <a href="https://hexo.io/" target="_blank">Hexo</a></span><span class="iconfont-archer power">&#xe635;</span><span id="theme-info">theme <a href="https://github.com/fi3ework/hexo-theme-archer" target="_blank">Archer</a></span>
+    </div>
+    <!-- 不蒜子  -->
+    
+    <div class="busuanzi-container">
+        <span id="busuanzi_container_site_pv">PV: <span id="busuanzi_value_site_pv"></span>
+        </span>
+    </div>
+    
+</footer>
+    </div>
+    <!-- toc -->
+    
+    <div class="toc-wrapper" style=
+    
+
+
+
+
+
+
+
+top:50vh;
+
+    >
+        <div class="toc-catalog">
+            <span class="iconfont-archer catalog-icon">&#xe613;</span><span>CATALOG</span>
+        </div>
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#定义与特性"><span class="toc-number">1.</span> <span class="toc-text">定义与特性</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#思考过程"><span class="toc-number">2.</span> <span class="toc-text">思考过程</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#构建搜索二叉树"><span class="toc-number">2.1.</span> <span class="toc-text">构建搜索二叉树</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#修改成红黑树"><span class="toc-number">2.2.</span> <span class="toc-text">修改成红黑树</span></a></li></ol></li></ol>
+    </div>
+    
+    <div class="back-top iconfont-archer">&#xe639;</div>
+    <div class="sidebar sidebar-hide">
+    <ul class="sidebar-tabs sidebar-tabs-active-0">
+        <li class="sidebar-tab-archives"><span class="iconfont-archer">&#xe67d;</span><span class="tab-name">Archive</span></li>
+        <li class="sidebar-tab-tags"><span class="iconfont-archer">&#xe61b;</span><span class="tab-name">Tag</span></li>
+        <li class="sidebar-tab-categories"><span class="iconfont-archer">&#xe666;</span><span class="tab-name">Cate</span></li>
+    </ul>
+    <div class="sidebar-content sidebar-content-show-archive">
+          <div class="sidebar-panel-archives">
+    <!-- 在ejs中将archive按照时间排序 -->
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <div class="total-archive"> Total : 4 </div>
+    
+    <div class="post-archive">
+    
+    
+    
+    
+    <div class="archive-year"> 2018 </div>
+    <ul class="year-list">
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">04/02</span><a class="archive-post-title" href= "/2018/04/02/红黑树/" >红黑树</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">03/30</span><a class="archive-post-title" href= "/2018/03/30/小白对堆排序的思考历程/" >小白对堆排序的思考历程</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">03/30</span><a class="archive-post-title" href= "/2018/03/30/第一篇博客。。。/" >第一篇博客。。。</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">03/30</span><a class="archive-post-title" href= "/2018/03/30/hello-world/" >Hello World</a>
+        </li>
+    
+    </div>
+  </div>
+        <div class="sidebar-panel-tags">
+    <div class="sidebar-tags-name">
+    
+    </div>
+    <div class="iconfont-archer sidebar-tags-empty">&#xe678;</div>
+    <div class="tag-load-fail" style="display: none; color: #ccc; font-size: 0.6rem;">
+    缺失模块。<br/>
+    1、请确保node版本大于6.2<br/>
+    2、在博客根目录（注意不是archer根目录）执行以下命令：<br/>
+    <span style="color: #f75357; font-size: 1rem; line-height: 2rem;">npm i hexo-generator-json-content --save</span><br/>
+    3、在根目录_config.yml里添加配置：
+    <pre style="color: #787878; font-size: 0.6rem;">
+jsonContent:
+  meta: false
+  pages: false
+  posts:
+    title: true
+    date: true
+    path: true
+    text: false
+    raw: false
+    content: false
+    slug: false
+    updated: false
+    comments: false
+    link: false
+    permalink: false
+    excerpt: false
+    categories: true
+    tags: true</pre>
+    </div> 
+    <div class="sidebar-tags-list"></div>
+</div>
+        <div class="sidebar-panel-categories">
+    <div class="sidebar-categories-name">
+    
+    </div>
+    <div class="iconfont-archer sidebar-categories-empty">&#xe678;</div>
+    <div class="sidebar-categories-list"></div>
+</div>
+    </div>
+</div> 
+    <script>
+    var siteMeta = {
+        root: '/',
+        author: 'John Doe'
+    }
+</script>
+    <!-- busuanzi  -->
+    
+    <script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    
+    <!-- CNZZ  -->
+    
+    </div>
+    <!-- async load share.js -->
+    
+        <script src="/scripts/share.js" async></script>    
+    
+    </body>
+</html>
+
+
