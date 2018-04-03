@@ -348,7 +348,7 @@ height:50vh;
             <main class="main post-page">
     <article class="article-entry">
         <h1 id="定义与特性"><a href="#定义与特性" class="headerlink" title="定义与特性"></a>定义与特性</h1><p>红黑树，根据小白我的理解，这是一种平衡二叉树，其查找，插入，删除的操作都可以在log(n)时间内完成</p>
-<p>根据定义可以发现，红黑树具有以下五种特性：<br>一、节点只有黑色或者红色<br>二、红黑树的根节点是黑色的<br>三、所有空节点是黑色的<br>四、红色节点的子节点不可能是黑色<br>五、从根节点到任何空节点的路径上，黑色节点的个数是一致的</p>
+<p>根据定义可以发现，红黑树具有以下五种特性：<br>一、节点只有黑色或者红色<br>二、红黑树的根节点是黑色的<br>三、所有空节点是黑色的<br>四、红色节点的子节点不可能是红色<br>五、从根节点到任何空节点的路径上，黑色节点的个数是一致的</p>
 <p>这五个特性决定了红黑树优异的性能，即log(n)</p>
 <h1 id="思考过程"><a href="#思考过程" class="headerlink" title="思考过程"></a>思考过程</h1><h2 id="构建搜索二叉树"><a href="#构建搜索二叉树" class="headerlink" title="构建搜索二叉树"></a>构建搜索二叉树</h2><p>具体如何生成红黑树<br>开始一步一步从最开始思考</p>
 <p>先生成搜索二叉树，也就是小于等于节点的数据放左边子节点，大于节点的数据放右边子节点<br>所以节点需要的属性有自己的数据，父节点是谁，左右子节点是谁，自己是父节点的左边还是右边<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">class Node:</span><br><span class="line">    def __init__(self, item):</span><br><span class="line">        self.item = item</span><br><span class="line">        self.father = None</span><br><span class="line">        self.left = None</span><br><span class="line">        self.right = None</span><br><span class="line">        self.flag = None</span><br></pre></td></tr></table></figure></p>
